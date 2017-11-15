@@ -8,39 +8,44 @@
     const SLIDER_MIN = 1;
     const SLIDER_MAX = 100;
     const SLIDER_DEFAULT = 50;
-    const SLIDER_WIDTH = SLIDER.offsetWidth;
+    let sliderWidth = SLIDER.offsetWidth;
     SLIDER_START_TEXT.textContent = SLIDER_MIN;
     SLIDER_FINISH_TEXT.textContent = SLIDER_MAX;
-
+    let runnerPos;
     // Положение бегунка
     let posRunner = e =>{
         let pos = e.pageX - SLIDER.offsetLeft - HALF_RUNNER;
         return (pos < -HALF_RUNNER)
                     ? -HALF_RUNNER
-                    :(pos > SLIDER_WIDTH - HALF_RUNNER)
-                        ? SLIDER_WIDTH - HALF_RUNNER
+                    :(pos > sliderWidth - HALF_RUNNER)
+                        ? sliderWidth - HALF_RUNNER
                         : pos;
-
     };
     // Значение слайдера по положению бегунка orientation = true и положение бегулка по значению слайдера orientation = false
     let valueSlider = (val,orientation = true) =>{
         return orientation
-                    ? Math.round((val + HALF_RUNNER)*(SLIDER_MAX - SLIDER_MIN) / (SLIDER_WIDTH ) + 1)
-                    : ((val-1)*SLIDER_WIDTH/(SLIDER_MAX - SLIDER_MIN)) - HALF_RUNNER;
+                    ? Math.round((val + HALF_RUNNER)*(SLIDER_MAX - SLIDER_MIN) / (sliderWidth ) + 1)
+                    : ((val-1)*sliderWidth/(SLIDER_MAX - SLIDER_MIN)) - HALF_RUNNER;
     }
 // Параметры слайдера, которые исполняются много раз
-    let sliderParams = pos =>{
+    let sliderParams = (pos,val) =>{
+        runnerPos = pos;
         RUNNER.style.left = pos + 'px';
-        PRECISE_CONTROL.value = valueSlider(pos);
+        (!!val)
+            ? PRECISE_CONTROL.value = val
+            : PRECISE_CONTROL.value = valueSlider(pos);
+    }
+// Помощник слайдера
+    let helperSliderParams = (val,variant = false)=>{
+        sliderParams(valueSlider(val,variant),val);
     }
 // Выставляем по дефолту
-    sliderParams(valueSlider(SLIDER_DEFAULT,false));
+    helperSliderParams(SLIDER_DEFAULT);
 // Управление слайдера мышкой
     SLIDER.onmousedown = function (e) {
         sliderParams(posRunner(e));
         document.onmousemove = function (c) {
             sliderParams(posRunner(c));
-            console.log(posRunner(c),valueSlider(posRunner(c)),SLIDER_WIDTH);
         }
         document.onmouseup = function () {
             document.onmousedown = document.onmousemove = null;
@@ -49,14 +54,19 @@
 // Управление слайдера текстовым полем
     PRECISE_CONTROL.onkeyup = function () {
         setTimeout(function () {
-            if(PRECISE_CONTROL.value > SLIDER_MAX){
-                sliderParams(valueSlider(SLIDER_MAX,false));
-            } else if (PRECISE_CONTROL.value < SLIDER_MIN){
-                sliderParams(valueSlider(SLIDER_MIN,false));
-            } else {
-                RUNNER.style.left = valueSlider(PRECISE_CONTROL.value, false) + 'px';
-            }
+            (PRECISE_CONTROL.value > SLIDER_MAX)
+                ? helperSliderParams(SLIDER_MAX)
+                : (PRECISE_CONTROL.value < SLIDER_MIN)
+                    ? helperSliderParams(SLIDER_MIN)
+                    : RUNNER.style.left = valueSlider(PRECISE_CONTROL.value, false) + 'px';
         },1000);
+    };
+    // При изменении окна
+    window.onresize = function () {
+        // Минимум, максимум и положение бегунка вычисляется
+        sliderWidth = SLIDER.offsetWidth;
+        // helperSliderParams(SLIDER_DEFAULT);
+        sliderParams(valueSlider(runnerPos));
     };
 
 }());
