@@ -1,0 +1,31 @@
+$runnerHover: #ffea31
+$runnerActive: #fffbc0
+.slider
+  position: relative
+  height: 8px
+  border-radius: 5px
+  border: solid 1px #e6e6e6
+  background: #fbffff
+  cursor: pointer
+  &:hover
+    .slider__runner
+      background: $runnerHover
+  &:active
+    .slider__runner
+      background: $runnerActive
+
+  &__runner
+    $size: 20px
+    position: absolute
+    top: 50%
+    transform: translateY(-50%)
+    width: $size
+    height: $size
+    border-radius: 50%
+    background: #ffbf09
+    &:hover
+      background: $runnerHover
+      cursor: grab
+    &:active
+      background: $runnerActive
+      cursor: grabbing

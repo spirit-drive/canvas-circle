@@ -1,0 +1,9 @@
+include ../slider/slider
+include ../mark/mark
+mixin management
+    .management
+        +slider('management__slider','management__runner')
+        .management__info
+            +mark('management__start','management__start','от','1')
+            +mark('management__finish','management__finish','до','100')
+            input#management__precise-control.management__precise-control(type='text')
