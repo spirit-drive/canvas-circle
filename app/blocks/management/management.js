@@ -11,7 +11,6 @@
     let sliderWidth = SLIDER.offsetWidth;
     SLIDER_START_TEXT.textContent = SLIDER_MIN;
     SLIDER_FINISH_TEXT.textContent = SLIDER_MAX;
-    let runnerPos;
     // Положение бегунка
     let posRunner = e =>{
         let pos = e.pageX - SLIDER.offsetLeft - HALF_RUNNER;
@@ -29,7 +28,6 @@
     }
 // Параметры слайдера, которые исполняются много раз
     let sliderParams = (pos,val) =>{
-        runnerPos = pos;
         RUNNER.style.left = pos + 'px';
         (!!val)
             ? PRECISE_CONTROL.value = val
@@ -65,8 +63,7 @@
     window.onresize = function () {
         // Минимум, максимум и положение бегунка вычисляется
         sliderWidth = SLIDER.offsetWidth;
-        // helperSliderParams(SLIDER_DEFAULT);
-        sliderParams(valueSlider(runnerPos));
+        helperSliderParams(PRECISE_CONTROL.value);
     };
 
 }());
