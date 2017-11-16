@@ -7,7 +7,7 @@ function slider() {
     const HALF_RUNNER = RUNNER.offsetWidth / 2;
     const SLIDER_MIN = 1;
     const SLIDER_MAX = 100;
-    const SLIDER_DEFAULT = 50;
+    const SLIDER_DEFAULT = 100;
     let sliderWidth = SLIDER.offsetWidth;
     SLIDER_START_TEXT.textContent = SLIDER_MIN;
     SLIDER_FINISH_TEXT.textContent = SLIDER_MAX;
@@ -75,11 +75,11 @@ function slider() {
     };
 
 // При изменении окна
-    window.onresize = function () {
-        // Минимум, максимум и положение бегунка вычисляется
-        sliderWidth = SLIDER.offsetWidth;
-        runnerAtValue(SLIDER_INPUT.value);
-    };
+//     window.onresize = function () {
+//         // Минимум, максимум и положение бегунка вычисляется
+//         sliderWidth = SLIDER.offsetWidth;
+//         runnerAtValue(SLIDER_INPUT.value);
+//     };
 
 // При фокусе на бегунке, можем двигать его стрелками
     RUNNER.onfocus = function () {
@@ -112,7 +112,7 @@ function slider() {
     };
 
     return {
-        val: SLIDER_INPUT.value,
+        sliderValue: SLIDER_INPUT.value,
     };
 
 };
