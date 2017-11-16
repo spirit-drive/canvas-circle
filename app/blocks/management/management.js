@@ -7,7 +7,7 @@ function slider() {
     const HALF_RUNNER = RUNNER.offsetWidth / 2;
     const SLIDER_MIN = 1;
     const SLIDER_MAX = 100;
-    const SLIDER_DEFAULT = 100;
+    const SLIDER_DEFAULT = 2;
     let sliderWidth = SLIDER.offsetWidth;
     SLIDER_START_TEXT.textContent = SLIDER_MIN;
     SLIDER_FINISH_TEXT.textContent = SLIDER_MAX;
