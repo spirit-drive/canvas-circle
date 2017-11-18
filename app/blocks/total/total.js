@@ -11,7 +11,7 @@
 
     const SLIDER_MIN = 1;
     const SLIDER_MAX = 100;
-    const SLIDER_DEFAULT = 100;
+    const SLIDER_DEFAULT = 1;
 
     // Функции для помощи. Решил не использовать данную нанобиблиотеку
     let support = {
@@ -61,7 +61,7 @@
             this.runnerAtValue(this.limiter(sDefault,min,max));
         };
 
-        // Куда поставить бегунок. Возвращает численное значение left
+        // Куда поставить бегунок при клике мышью. Возвращает численное значение left
         this.runnerLeft = function (e) {
             return e.pageX - field.offsetLeft - HALF_RUNNER;
         };
@@ -206,12 +206,9 @@
 
     // Модель холста
     let CanvasCreate = function(canvas){
-        this.interaction = {
-            mousePos: function (e) {
-                
-            }
-            
-        };
+
+        // Сохраняем контекст объекта
+        let canvasObjContext = this;
 
         // Выставляет канвас на всю ширину родителя, средствами css канвас расстягивается
         this.size = function () {
@@ -222,15 +219,25 @@
         this.draw = function () {
             console.log('Присвойте функцию данному методу: canvas.draw = function(){... Ваша функция ...}');
         };
+        // Хранит координаты мыши
+        this.mousePos = {
+            x: 0,
+            y: 0
+        };
+        // При движении мышью, перезаписываем ее координаты
+        canvas.onmousemove = function (e){
+            canvasObjContext.mousePos.x = e.pageX - canvas.offsetLeft;
+            canvasObjContext.mousePos.y = e.pageY - canvas.offsetTop;
+        };
     };
 
     // Модель кругов и всей физики
-    let CreateCircle = function (canvasElem) {
-        const CONTEXT = CANVAS.getContext('2d');
+    let CircleCreate = function (canvasElem,canvasObj) {
+        const CONTEXT = canvasElem.getContext('2d');
 
         let $this = this;
 
-        // По умолчанию
+        // Количество кругов по умолчанию
         this.countCircle = 50;
         this.getCountCircle = function () {
             console.log(
@@ -252,6 +259,91 @@
                 return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
             }
         };
+        this.button = {
+            // Настройки кнопки
+            setting: {
+                width: 100,
+                height: 40,
+                lineWidth: 1,
+                borderRadius: 10,
+                shift: 10,
+                color: [
+                    '#ffcb00',
+                    '#33ccff',
+                ],
+                colorStroke: '#dfdfdf',
+                text: [
+                    'Play',
+                    'Pause',
+                ],
+                textColor: '#fafafa',
+                textFontSize: 28,
+            },
+            // Отрисовка одной кнопки
+            drawButton: function (x,y,radius,width,height,color,text) {
+                CONTEXT.beginPath();
+                CONTEXT.moveTo(x, y + radius);
+                CONTEXT.lineTo(x, y + height - radius);
+                CONTEXT.quadraticCurveTo(x, y + height, x + radius, y + height);
+                CONTEXT.lineTo(x + width - radius, y + height);
+                CONTEXT.quadraticCurveTo(x + width, y + height, x + width, y + height - radius);
+                CONTEXT.lineTo(x + width, y + radius);
+                CONTEXT.quadraticCurveTo(x + width, y, x + width - radius, y);
+                CONTEXT.lineTo(x + radius, y);
+                CONTEXT.quadraticCurveTo(x, y, x, y + radius);
+                CONTEXT.lineWidth = $this.button.setting.lineWidth;
+                CONTEXT.strokeStyle = $this.button.setting.colorStroke;
+                CONTEXT.stroke();
+                CONTEXT.fillStyle = color;
+                CONTEXT.fill();
+                CONTEXT.font = `${$this.button.setting.textFontSize}px Arial`;
+                CONTEXT.beginPath();
+                CONTEXT.fillStyle = $this.button.setting.textColor;
+                CONTEXT.fillText(text,x + 10,y + 30);
+                CONTEXT.fill();
+            },
+            // Отрисовка всех кнопок
+            draw: function () {
+                for (let i = 0; i < 2; i++){
+                    $this.button.drawButton(
+                        $this.button.setting.shift*(i+1) + $this.button.setting.width * i,
+                        $this.button.setting.shift,
+                        $this.button.setting.borderRadius,
+                        $this.button.setting.width,
+                        $this.button.setting.height,
+                        $this.button.setting.color[i],
+                        $this.button.setting.text[i]
+                    );
+                }
+            },
+            buttonCheck: function (mouseX,mouseY) {
+                for (let i = 0; i < 2; i++){
+                    if (mouseX >= $this.button.setting.shift*(i+1) + $this.button.setting.width * i &&
+                        mouseX <= $this.button.setting.shift*(i+1) + $this.button.setting.width * (i+1) &&
+                        mouseY >= $this.button.setting.shift &&
+                        mouseY <= $this.button.setting.shift + $this.button.setting.height)
+                    {
+                        canvasElem.style.cursor = 'pointer';
+                        document.onmousedown = function () {
+                            console.log(i);
+                            if (i){
+                                console.log(10);
+                                cancelAnimationFrame($this.animation.count);
+                                document.onmousedown = null;
+                            }else{
+                                console.log(20);
+                                $this.animation.count = requestAnimationFrame($this.animation.loop);
+                                document.onmousedown = null;
+                            }
+                            // (i) ? cancelAnimationFrame($this.animation.count)
+                            //     : $this.animation.count = requestAnimationFrame($this.animation.loop);
+                        };
+                    }else{
+                        // document.onmousedown = null;
+                    }
+                }
+            }
+        };
         this.circle = {
             // Настройки
             setting: {
@@ -261,6 +353,8 @@
                     "#8fcafe",
                     "#dbcdf0",
                 ],
+                colorStop: "#ffb584",
+                colorPlay: "#fd0",
                 densityCircle: [15, 20, 25],
             },
             // Модель
@@ -270,7 +364,7 @@
 
                 // Размеры
                 this.radius = (Math.random() + 1) * Math.sqrt(canvasElem.height * canvasElem.width / $this.getCountCircle()) / 2 * 0.3;
-                this.lineWidth = this.radius * 0.1;
+                this.lineWidth = 5;
                 this.totalRadius = this.radius + this.lineWidth;
 
                 // Позиция
@@ -294,7 +388,6 @@
                     this.limiter();
                     this.x += this.vector.x;
                     this.y += this.vector.y;
-                    this.draw();
                 };
 
                 // При соударении о стенки, отлетает обратно
@@ -424,27 +517,60 @@
                         }
                     }
                 }
+                // При нажатии проверяет, попал ли на круг, если попал то останавливает, либо запускает его
+                canvasElem.onmousedown = function () {
+                    let k = 0.2;
+                    if ($this.circle.array.length){
+                        for (let i = 0; i < $this.circle.array.length; i++){
+                            if ($this.support.distance(canvasObj.mousePos.x,canvasObj.mousePos.y,$this.circle.array[i].x,$this.circle.array[i].y) < $this.circle.array[i].totalRadius){
+                                if ($this.circle.array[i].vector.x){
+                                    $this.circle.array[i].vector.x = 0;
+                                    $this.circle.array[i].vector.y = 0;
+                                    $this.circle.array[i].strokeStyle = $this.circle.setting.colorStop;
+                                } else {
+                                    $this.circle.array[i].vector.x = (canvasObj.mousePos.x - $this.circle.array[i].x)*k;
+                                    $this.circle.array[i].vector.y = (canvasObj.mousePos.y - $this.circle.array[i].y)*k;
+                                    $this.circle.array[i].strokeStyle = $this.circle.setting.colorPlay;
+                                }
+                                setTimeout(function () {
+                                    $this.circle.array[i].strokeStyle = $this.circle.array[i].color;
+                                },1000);
+                            }
+                        }
+                    }
+                };
             }
         };
         this.animation = {
-            anim:'',
+            count:'',
             // Петля анимации
             loop: function() {
 
+                canvasElem.style.cursor = 'default';
+
                 // При нажатии на SUBMIT с каждым нажатием скорость кругов увеличивается, cancelAnimationFrame предотвращает эту проблему
-                cancelAnimationFrame($this.animation.anim);
+                cancelAnimationFrame($this.animation.count);
                 CONTEXT.clearRect(0, 0, canvasElem.width, canvasElem.height);
                 for (let i = 0; i < $this.circle.array.length; i++) {
                     $this.circle.array[i].move();
+                    $this.circle.array[i].draw();
+                    if ($this.support.distance(canvasObj.mousePos.x,canvasObj.mousePos.y,$this.circle.array[i].x,$this.circle.array[i].y) < $this.circle.array[i].totalRadius){
+                        canvasElem.style.cursor = 'pointer';
+                    }
                 }
+
+                $this.button.draw();
+                $this.button.buttonCheck(canvasObj.mousePos.x,canvasObj.mousePos.y);
+
                 $this.physics.func();
-                $this.animation.anim = requestAnimationFrame($this.animation.loop);
+                $this.animation.count = requestAnimationFrame($this.animation.loop);
             },
             play: function () {
                 $this.circle.create();
-                this.anim = requestAnimationFrame(this.loop);
+                this.count = requestAnimationFrame(this.loop);
             }
         };
+
     };
 
 // Создаем элементы
@@ -463,8 +589,9 @@
     // Создаем новый холст
     let canvas = new CanvasCreate(CANVAS);
 
-    // Создаем новый рисунок холсту
-    canvas.draw = new CreateCircle(CANVAS);
+    // Создаем новый рисунок на холсте
+    canvas.draw = new CircleCreate(CANVAS,canvas);
+
 
 // Блок управления
     // Привязываем количество кругов к значению слайдера
