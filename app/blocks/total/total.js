@@ -1,25 +1,25 @@
+"use strict";
 (function (){
     const SLIDER = document.getElementById('management__slider');
     const RUNNER = document.getElementById('management__runner');
     const SLIDER_INPUT = document.getElementById('management__precise-control');
     const SLIDER_START_TEXT = document.getElementById('management__start').children[1];
     const SLIDER_FINISH_TEXT = document.getElementById('management__finish').children[1];
+
     const CANVAS = document.getElementById('canvas__field');
     const SUBMIT = document.getElementById('canvas__play');
-    const CONTEXT = CANVAS.getContext('2d');
-    const HALF_RUNNER = RUNNER.offsetWidth / 2;
+
     const SLIDER_MIN = 1;
     const SLIDER_MAX = 100;
     const SLIDER_DEFAULT = 100;
 
+    // Функции для помощи. Решил не использовать данную нанобиблиотеку
     let support = {
 
         // Ограничивает значение в заданом диапазоне и возвращает значение
         limiter: function (value,min,max) {
-            return (value > max)
-                ? max
-                : (value < min)
-                    ? min
+            return (value > max) ? max
+                : (value < min) ? min
                     : value;
         },
 
@@ -34,332 +34,453 @@
         }
     };
 
+    // Объект данного блока
     let block = {
         default: function () {
             canvas.size();
-            slider.default();
+            slider.start();
         }
     };
 
-    let canvas = {
-        // Выставляет канвас на всю ширину родителя, средствами css канвас расстягивается
-        size: function () {
-            CANVAS.width = CANVAS.parentNode.offsetWidth - 2*HALF_RUNNER; // БАГ! Ширина канвас увеличивается на ширину бегунка
-            CANVAS.height = CANVAS.width * 0.62;
-        }
-    };
+// Модели
+    // Модель слайдера
+    let Slider = function (field, runner, min, max, sDefault, valuesElem, labelStart, labelFinish){
+        const HALF_RUNNER = runner.offsetWidth / 2;
 
-    let slider = {
-        default: function () {
-            SLIDER_START_TEXT.textContent = SLIDER_MIN;
-            SLIDER_FINISH_TEXT.textContent = SLIDER_MAX;
-            this.runnerAtValue(support.limiter(SLIDER_DEFAULT,SLIDER_MIN,SLIDER_MAX));
-        },
+        // Ограничивает значение в заданом диапазоне и возвращает значение
+        this.limiter = function (value,min,max) {
+            return (value > max) ? max
+                : (value < min) ? min
+                    : value;
+        };
+
+        // Функция для правильной загрузки
+        this.start = function () {
+            if(!!labelStart){labelStart.textContent = min;}
+            if(!!labelFinish){labelFinish.textContent = max;}
+            this.runnerAtValue(this.limiter(sDefault,min,max));
+        };
 
         // Куда поставить бегунок. Возвращает численное значение left
-        runnerLeft: function (e) {
-            return e.pageX - SLIDER.offsetLeft - HALF_RUNNER;
-        },
+        this.runnerLeft = function (e) {
+            return e.pageX - field.offsetLeft - HALF_RUNNER;
+        };
 
         // Принимает числовое значение слайдера, выставляет бегунок в соответсвии со значением
-        runnerAtValue: (value, variant = false)=>{
-            slider.sliderParams(slider.valueSlider(value, variant), value);
-        },
+        this.runnerAtValue = function(value, variant = false){
+            this.sliderParams(this.valueSlider(value, variant), value);
+        };
 
         // Значение слайдера по положению бегунка orientation = true и положение бегулка по значению слайдера orientation = false
-        valueSlider: function (value,orientation = true) {
-                return orientation
-                    ? Math.round((value + HALF_RUNNER)*(SLIDER_MAX - SLIDER_MIN) / SLIDER.offsetWidth + SLIDER_MIN)
-                    : (value - SLIDER_MIN)*SLIDER.offsetWidth / (SLIDER_MAX - SLIDER_MIN) - HALF_RUNNER;
-        },
+        this.valueSlider = function (value,orientation = true) {
+            return orientation ? Math.round((value + HALF_RUNNER)*(max - min) / field.offsetWidth + min)
+                : (value - min)*field.offsetWidth / (max - min) - HALF_RUNNER;
+        };
 
         // Устанавливает отступ бегунка и значение input
         // left принимает числовое значение и устанавливает left бегунка, так же по нему находится числовое значение input.
         // val числовое значение слайдера, если оно не объявлено, функция сама вычисляет его и устанавливает в input
-        sliderParams: function (left,value) {
-                left = support.limiter(left,-HALF_RUNNER,SLIDER.offsetWidth - HALF_RUNNER);
-                RUNNER.style.left = `${left}px`;
-                (!!value)
-                    ? SLIDER_INPUT.value = value
-                    : SLIDER_INPUT.value = this.valueSlider(left);
-        },
+        this.sliderParams = function (left,value) {
+            left = this.limiter(left,-HALF_RUNNER,field.offsetWidth - HALF_RUNNER);
+            runner.style.left = `${left}px`;
+            (!!value) ? valuesElem.value = value
+                : valuesElem.value = this.valueSlider(left);
+        };
 
         // Обновляет слайдер. Проверяет на ограничения и устанавливает значение и бегунок
-        update: function () {
-            let helper = support.limiter(SLIDER_INPUT.value,SLIDER_MIN,SLIDER_MAX);
-            if (helper === SLIDER_MAX){
-                slider.runnerAtValue(SLIDER_MAX);
-            }else if(helper === SLIDER_MIN){
-                slider.runnerAtValue(SLIDER_MIN);
+        this.update = function () {
+            let helper = this.limiter(valuesElem.value,min,max);
+            if (helper === max){
+                this.runnerAtValue(max);
+            }else if(helper === min){
+                this.runnerAtValue(min);
             }
-            RUNNER.style.left = `${slider.valueSlider(helper, false)}px`;
-        },
+            runner.style.left = `${this.valueSlider(helper, false)}px`;
+        };
 
         // Движение бегунка с принятой скоростью
-        moveKeyboard: function (speed) {
-            const STEP = SLIDER.offsetWidth / (SLIDER_MAX - SLIDER_MIN);
-            RUNNER.style.left = `${slider.sliderParams(RUNNER.offsetLeft + speed * STEP)}px`;
-        },
+        this.moveKeyboard = function (speed) {
+            const STEP = field.offsetWidth / (max - min);
+            runner.style.left = `${this.sliderParams(runner.offsetLeft + speed * STEP)}px`;
+        };
+
+        // Возвращает значение слайдера
+        this.value = function(){
+            return valuesElem.value;
+        };
+        // Запускается при работе с бегунком runner и текстовым полем valuesElem
+        this.play = function () {
+            console.log('Присвойте slider.play функцию, которую вы хотите таким образом: slider.play = function () { ... Ваша функция ... }');
+        };
+
+        // При изменении окна, положение бегунка соответствует значению слайдера
+        this.windowOnResize = function () {
+            this.runnerAtValue(valuesElem.value);
+        };
+
+        let sliderContext = this;
+
+        // Управление слайдера мышкой
+        field.onmousedown = function (e) {
+            sliderContext.sliderParams(sliderContext.runnerLeft(e));
+            document.onmousemove = function (c) {
+                sliderContext.sliderParams(sliderContext.runnerLeft(c));
+            };
+            document.onmouseup = function () {
+                document.onmousedown = document.onmousemove = null;
+            };
+        };
+
+        // Управление слайдера текстовым полем
+        valuesElem.onfocus = function () {
+            // Вспомогательные переменные для движения бегунка с ускорением
+            let speed = 0, vector;
+
+            // Отпускание клавиш
+            this.onkeyup = function (e) {
+
+                // Удаляем все кроме цифр
+                this.value = this.value.replace(/\D/g, '');
+
+                // Если enter, то срабатывает моментально
+                switch (e.keyCode) {
+                    case 13:
+                        sliderContext.update();
+                        sliderContext.play();
+                        break;
+                }
+
+                // По дефолту делает задержку для удобства
+                setTimeout(function () {
+                    sliderContext.update();
+                }, 1000);
+                speed = 0;
+            };
+
+            // Нажатие клавиш
+            this.onkeydown = function (e) {
+                switch (e.keyCode) {
+                    case 40:
+                        vector = -1;
+                        speed += vector;
+                        sliderContext.moveKeyboard(speed);
+                        break;
+                    case 38:
+                        vector = 1;
+                        speed += vector;
+                        sliderContext.moveKeyboard(speed);
+                        break;
+                }
+            };
+
+        };
+        // При фокусе на бегунке, можем двигать его стрелками и запускать с помощью
+        runner.onfocus = function () {
+            let speed = 0, vector;
+            this.onkeydown = function (e) {
+                switch (e.keyCode) {
+                    case 37:
+                    case 40:
+                        vector = -1;
+                        speed += vector;
+                        sliderContext.moveKeyboard(speed);
+                        break;
+                    case 38:
+                    case 39:
+                        vector = 1;
+                        speed += vector;
+                        sliderContext.moveKeyboard(speed);
+                        break;
+                    case 13:
+                        sliderContext.play();
+                        break;
+                }
+            };
+            // Обнуляет ускорение
+            this.onkeyup = function () {
+                speed = 0;
+            };
+        };
+
     };
 
-// Канвас начало
+    // Модель холста
+    let CanvasCreate = function(canvas){
+        this.interaction = {
+            mousePos: function (e) {
+                
+            }
+            
+        };
 
-    // Круги
-    let circle = {
-        // Настройки
-        setting: {
-            speed: 7,
-            color: [
-                "#bfdefe",
-                "#8fcafe",
-                "#dbcdf0",
-            ],
-            densityCircle: [10, 30, 50],
-        },
-        // Модель
-        Model: function () {
-            // Рандомный вид
-            let kind = support.randomInt(0, 2);
+        // Выставляет канвас на всю ширину родителя, средствами css канвас расстягивается
+        this.size = function () {
+            canvas.width = canvas.parentNode.offsetWidth; // БАГ! Ширина канвас увеличивается на ширину бегунка
+            canvas.height = canvas.width * 0.62;
+        };
+        // В этой функции присваиваем все, что хотим нарисовать
+        this.draw = function () {
+            console.log('Присвойте функцию данному методу: canvas.draw = function(){... Ваша функция ...}');
+        };
+    };
 
-            // Размеры
-            this.radius = (Math.random() + 1) * Math.sqrt(CANVAS.height * CANVAS.width / SLIDER_INPUT.value) / 2 * 0.3;
-            this.lineWidth = this.radius * 0.1;
-            this.totalRadius = this.radius + this.lineWidth;
+    // Модель кругов и всей физики
+    let CreateCircle = function (canvasElem) {
+        const CONTEXT = CANVAS.getContext('2d');
 
-            // Позиция
-            this.x = Math.random() * (CANVAS.width - this.radius * 2) + this.radius;
-            this.y = Math.random() * (CANVAS.height - this.radius * 2) + this.radius;
+        let $this = this;
 
-            // Цвета
-            this.color = circle.setting.color[kind];
-            this.strokeStyle = this.color;
+        // По умолчанию
+        this.countCircle = 50;
+        this.getCountCircle = function () {
+            console.log(
+                `По умолчанию рисует ${this.countCircle} кругов 
+                \nЧтобы изменять количество кругов напишите: 
+                \nYourObject.getCountCircle = function () {... Ваша функция ...} 
+                \nНапример: canvas.draw.getCountCircle = function () {... Ваша функция ...}`
+            );
+            return this.countCircle;
+        };
+        this.support = {
+            // Целочисленный рандом
+            randomInt: function(min, max){
+                return Math.round(Math.random() * (max - min)) + min;
+            },
 
-            // Физические параметры
-            this.volumeCircle = Math.pow(this.radius, 3) * Math.PI * 4 / 3;
-            this.mass = this.volumeCircle * circle.setting.densityCircle[kind];
-            this.vector = {
-                x: circle.setting.speed * (Math.random() - 0.5),
-                y: circle.setting.speed * (Math.random() - 0.5),
-            };
+            // Дистанция между двумя точками
+            distance: function (x1, y1, x2, y2) {
+                return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            }
+        };
+        this.circle = {
+            // Настройки
+            setting: {
+                speed: 14,
+                color: [
+                    "#bfdefe",
+                    "#8fcafe",
+                    "#dbcdf0",
+                ],
+                densityCircle: [15, 20, 25],
+            },
+            // Модель
+            Model: function () {
+                // Рандомный вид
+                let kind = $this.support.randomInt(0, 2);
 
-            // Движение
-            this.move = function () {
-                this.limiter();
-                this.x += this.vector.x;
-                this.y += this.vector.y;
-                this.draw();
-            };
+                // Размеры
+                this.radius = (Math.random() + 1) * Math.sqrt(canvasElem.height * canvasElem.width / $this.getCountCircle()) / 2 * 0.3;
+                this.lineWidth = this.radius * 0.1;
+                this.totalRadius = this.radius + this.lineWidth;
 
-            // При соударении о стенки, отлетает обратно
-            this.limiter = function () {
-                let canvasRightEdge = CANVAS.width;
-                let canvasLeftEdge = 0;
-                let canvasTopEdge = 0;
-                let canvasBottomEdge = CANVAS.height;
-                let circleRightEdge = this.x + this.totalRadius;
-                let circleLeftEdge = this.x - this.totalRadius;
-                let circleTopEdge = this.y - this.totalRadius;
-                let circleBottomEdge = this.y + this.totalRadius;
+                // Позиция
+                this.x = Math.random() * (canvasElem.width - this.radius * 2) + this.radius;
+                this.y = Math.random() * (canvasElem.height - this.radius * 2) + this.radius;
 
-                // Выдавливание из-за краев
-                let squeezing =(edge1,edge2)=>{
-                    let squeeze = 1;
-                    return (edge1 <= edge2)? squeeze : -squeeze;
+                // Цвета
+                this.color = $this.circle.setting.color[kind];
+                this.strokeStyle = this.color;
+
+                // Физические параметры
+                this.volumeCircle = Math.pow(this.radius, 3) * Math.PI * 4 / 3;
+                this.mass = this.volumeCircle * $this.circle.setting.densityCircle[kind];
+                this.vector = {
+                    x: $this.circle.setting.speed * (Math.random() - 0.5),
+                    y: $this.circle.setting.speed * (Math.random() - 0.5),
                 };
 
-                // По ширине
-                if (circleRightEdge >= canvasRightEdge || circleLeftEdge <= canvasLeftEdge) {
-                    this.vector.x = -this.vector.x;
-                    this.x += squeezing(circleLeftEdge,canvasLeftEdge);
+                // Движение
+                this.move = function () {
+                    this.limiter();
+                    this.x += this.vector.x;
+                    this.y += this.vector.y;
+                    this.draw();
+                };
+
+                // При соударении о стенки, отлетает обратно
+                this.limiter = function () {
+                    let canvasRightEdge = canvasElem.width;
+                    let canvasLeftEdge = 0;
+                    let canvasTopEdge = 0;
+                    let canvasBottomEdge = canvasElem.height;
+                    let circleRightEdge = this.x + this.totalRadius;
+                    let circleLeftEdge = this.x - this.totalRadius;
+                    let circleTopEdge = this.y - this.totalRadius;
+                    let circleBottomEdge = this.y + this.totalRadius;
+
+                    // Выдавливание из-за краев
+                    let squeezing =(edge1,edge2)=>{
+                        let squeeze = 1;
+                        return (edge1 <= edge2)? squeeze : -squeeze;
+                    };
+
+                    // По ширине
+                    if (circleRightEdge >= canvasRightEdge || circleLeftEdge <= canvasLeftEdge) {
+                        this.vector.x = -this.vector.x;
+                        this.x += squeezing(circleLeftEdge,canvasLeftEdge);
+                    }
+
+                    // По высоте
+                    if (circleTopEdge <= canvasTopEdge || circleBottomEdge >= canvasBottomEdge) {
+                        this.vector.y = -this.vector.y;
+                        this.y += squeezing(circleTopEdge,canvasTopEdge);
+                    }
+                };
+
+                // Отрисовка
+                this.draw = function () {
+                    CONTEXT.beginPath();
+                    CONTEXT.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    CONTEXT.closePath();
+                    CONTEXT.lineWidth = this.lineWidth;
+                    CONTEXT.strokeStyle = this.strokeStyle;
+                    CONTEXT.stroke();
+                    CONTEXT.fillStyle = this.color;
+                    CONTEXT.fill();
+                };
+            },
+            array: [],
+            create: function () {
+                this.array = [];
+                for (let i = 0; i < $this.getCountCircle(); i++) {
+                    this.array.push(new this.Model());
                 }
+            }
+        };
+        this.physics = {
+            // Содержит пары, которые столкнулись, чтобы не вызывать столкновение, до тех пор, пока они окончательно не выйдут друг из друга
+            isWasPair: [],
 
-                // По высоте
-                if (circleTopEdge <= canvasTopEdge || circleBottomEdge >= canvasBottomEdge) {
-                    this.vector.y = -this.vector.y;
-                    this.y += squeezing(circleTopEdge,canvasTopEdge);
+            // Для выхода из итерации
+            check: false,
+
+
+            // Принимает номера кругов, если есть пара с такими номерами, то либо удаляет "this.isWasPair.splice(l)" - variant = false,
+            // либо присваивает переменной значение для выхода из итерации "this.check = true" - variant = true
+            checkPair: function (i,j,variant = false) {
+                for (let l = 0; l < this.isWasPair.length; l++){
+                    if (this.isWasPair[l][0] === i && this.isWasPair[l][1] === j){
+                        (variant) ? this.check = true : this.isWasPair.splice(l);
+                        break;// Текущая пара j, i найдена, останавливаем цикл
+                    }
                 }
-            };
+            },
 
-            // Отрисовка
-            this.draw = function () {
-                CONTEXT.beginPath();
-                CONTEXT.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                CONTEXT.closePath();
-                CONTEXT.lineWidth = this.lineWidth;
-                CONTEXT.strokeStyle = this.strokeStyle;
-                CONTEXT.stroke();
-                CONTEXT.fillStyle = this.color;
-                CONTEXT.fill();
-            };
-        },
-        array: [],
-        create: function () {
-            this.array = [];
-            for (let i = 0; i < SLIDER_INPUT.value; i++) {
-                this.array.push(new this.Model());
-            }
-        }
-    };
+            // Возвращает вектор в соответствии с законом сохранения энергии
+            law: function (vector1,vector2,mass1,mass2,variant) {
+                return (variant) ? vector1 / (mass1 + mass2) * (2 * mass1) + vector2 / (mass1 + mass2) * (mass2 - mass1)
+                    : vector1 / (mass1 + mass2) * (mass1 - mass2) + vector2 / (mass1 + mass2) * (2 * mass2);
+            },
 
-    // Физика
-    let physics = {
-        // Содержит пары, которые столкнулись, чтобы не вызывать столкновение, до тех пор, пока они окончательно не выйдут друг из друга
-        isWasPair: [],
-
-        // Для выхода из итерации
-        check: false,
-
-        // Принимает номера кругов, если есть пара с такими номерами, то либо удаляет "this.isWasPair.splice(l)",
-        // либо присваивает переменной значение для выхода из итерации "this.check = true"
-        checkPair: function (i,j,variant = false) {
-            for (let l = 0; l < this.isWasPair.length; l++){
-                if (this.isWasPair[l][0] === i && this.isWasPair[l][1] === j){
-                    (variant) ? this.check = true : this.isWasPair.splice(l);
-                    break;// Текущая пара j, i найдена, останавливаем цикл
+            // Устанавливает значения вектора обоим шарам
+            calculation: function (array,vX1,vX2,vY1,vY2,m1,m2) {
+                for (let k = 0; k < array.length; k++){
+                    $this.circle.array[array[k]].vector.x = this.law(vX1,vX2,m1,m2,k);
+                    $this.circle.array[array[k]].vector.y = this.law(vY1,vY2,m1,m2,k);
                 }
-            }
-        },
+            },
 
-        // Возвращает вектор в соответствии с законом сохранения энергии
-        law: function (vector1,vector2,mass1,mass2,variant) {
-            return (variant)
-                ? vector1 / (mass1 + mass2) * (mass1 - mass2) + vector2 / (mass1 + mass2) * (2 * mass2)
-                : vector1 / (mass1 + mass2) * (2 * mass1) + vector2 / (mass1 + mass2) * (mass2 - mass1);
-        },
+            // Основная функция
+            func: function () {
 
-        // Устанавливает значения вектора обоим шарам
-        calculation: function (array,vX1,vX2,vY1,vY2,m1,m2) {
-            for (let k = 0; k < array.length; k++){
-                circle.array[array[k]].vector.x = this.law(vX1,vX2,m1,m2,k);
-                circle.array[array[k]].vector.y = this.law(vY1,vY2,m1,m2,k);
-            }
-        },
+                // Переменные объявляем вначале, а не цикле, чтобы не забивать память
+                let minDistance, distance;
 
-        // Основная функция
-        func: function () {
+                // Проверяем каждый, кроме последнего, последнего "i < $this.circle.array.length - 1",
+                // сравниваем только со следующими после того, которого брали i
+                for (let i = 0; i < $this.circle.array.length - 1; i++) {
+                    for (let j = i + 1; j < $this.circle.array.length; j++) {
 
-            // Переменные объявляем вначале, а не цикле, чтобы не забивать память
-            let minDistance, distance;
+                        this.check = false; // Для проверки пары
 
-            // Проверяем каждый, кроме последнего, последнего "i < circle.array.length - 1", но сравниваем с каждым "j < circle.array.length"
-            for (let i = 0; i < circle.array.length - 1; i++) {
-                for (let j = i + 1; j < circle.array.length; j++) {
+                        // Необходимые параметры
+                        minDistance = $this.circle.array[i].radius + $this.circle.array[j].radius;
+                        distance = $this.support.distance($this.circle.array[i].x, $this.circle.array[i].y, $this.circle.array[j].x, $this.circle.array[j].y);
 
-                    this.check = false; // Для проверки пары
+                        if (distance <= minDistance) {
 
-                    // Необходимые параметры
-                    minDistance = circle.array[i].radius + circle.array[j].radius;
-                    distance = support.distance(circle.array[i].x, circle.array[i].y, circle.array[j].x, circle.array[j].y);
+                            // Просматриваем все пары, если там есть текущая пара, то ...
+                            this.checkPair(i, j, true);
+                            // ... то выходим из итерации (берем другую пару)
+                            if(this.check){continue;}
 
-                    if (distance <= minDistance) {
+                            // Отправляем значения в калькулятор
+                            this.calculation(
+                                [i, j],// !Внимание! Важна последовательность! Сначала i, потом j
+                                $this.circle.array[i].vector.x,
+                                $this.circle.array[j].vector.x,
+                                $this.circle.array[i].vector.y,
+                                $this.circle.array[j].vector.y,
+                                $this.circle.array[i].mass,
+                                $this.circle.array[j].mass
+                            );
 
-                        // Просматриваем все пары, если там есть текущая пара, то ...
-                        this.checkPair(i, j, true);
-                        // ... то выходим из итерации (берем другую пару)
-                        if(this.check){continue;}
+                            // Записываем эту пару, чтобы потом не вызывать взаимодействие
+                            this.isWasPair.push([i, j]);
 
-                        // Отправляем значения в калькулятор
-                        this.calculation(
-                            [j, i],// !ВАЖНО! Обратная последовательность! Сначала j, потом i иначе работать не будет
-                            circle.array[i].vector.x,
-                            circle.array[j].vector.x,
-                            circle.array[i].vector.y,
-                            circle.array[j].vector.y,
-                            circle.array[i].mass,
-                            circle.array[j].mass
-                        );
-
-                        // Записываем эту пару, чтобы потом не вызывать взаимодействие
-                        this.isWasPair.push([i, j]);
-
-                    } else {
-                        // Если дистанция больше минимальной, надо удалить записи о парах, которые уже не актуальны
-                        this.checkPair(i, j);
+                        } else {
+                            // Если дистанция больше минимальной, надо удалить записи о парах, которые уже не актуальны
+                            this.checkPair(i, j);
+                        }
                     }
                 }
             }
-        }
+        };
+        this.animation = {
+            anim:'',
+            // Петля анимации
+            loop: function() {
+
+                // При нажатии на SUBMIT с каждым нажатием скорость кругов увеличивается, cancelAnimationFrame предотвращает эту проблему
+                cancelAnimationFrame($this.animation.anim);
+                CONTEXT.clearRect(0, 0, canvasElem.width, canvasElem.height);
+                for (let i = 0; i < $this.circle.array.length; i++) {
+                    $this.circle.array[i].move();
+                }
+                $this.physics.func();
+                $this.animation.anim = requestAnimationFrame($this.animation.loop);
+            },
+            play: function () {
+                $this.circle.create();
+                this.anim = requestAnimationFrame(this.loop);
+            }
+        };
     };
 
-    // Анимации
-    let anim;
-    let animation = {
-        // Петля анимации
-        loop: function() {
-            // При нажатии на SUBMIT с каждым нажатием скорость кругов увеличивается, cancelAnimationFrame предотвращает эту проблему
-            cancelAnimationFrame(anim);
-            CONTEXT.clearRect(0, 0, CANVAS.width, CANVAS.height);
-            for (let i = 0; i < circle.array.length; i++) {
-                circle.array[i].move();
-            }
-            physics.func();
-            anim = requestAnimationFrame(animation.loop);
-        },
-        play: function () {
-            circle.create();
-            anim = requestAnimationFrame(this.loop);
-        }
-    };
+// Создаем элементы
+    // Создаем новый слайдер
+    let slider = new Slider(
+        SLIDER,
+        RUNNER,
+        SLIDER_MIN,
+        SLIDER_MAX,
+        SLIDER_DEFAULT,
+        SLIDER_INPUT,
+        SLIDER_START_TEXT,
+        SLIDER_FINISH_TEXT
+    );
+
+    // Создаем новый холст
+    let canvas = new CanvasCreate(CANVAS);
+
+    // Создаем новый рисунок холсту
+    canvas.draw = new CreateCircle(CANVAS);
 
 // Блок управления
+    // Привязываем количество кругов к значению слайдера
+    canvas.draw.getCountCircle = function () {
+        return slider.value();
+    };
+
+    // Запуском слайдера активируем анимацию холста
+    slider.play = function () {
+        canvas.draw.animation.play();
+    };
+
     // Анимацию на кнопку
     SUBMIT.addEventListener('click', function () {
-        animation.play();
+        canvas.draw.animation.play();
     });
-
-    // Управление слайдера мышкой
-    SLIDER.onmousedown = function (e) {
-        slider.sliderParams(slider.runnerLeft(e));
-        document.onmousemove = function (c) {
-            slider.sliderParams(slider.runnerLeft(c));
-        };
-        document.onmouseup = function () {
-            document.onmousedown = document.onmousemove = null;
-        };
-    };
-
-    // Управление слайдера текстовым полем
-    SLIDER_INPUT.onkeyup = function (e) {
-
-        // Если enter, то срабатывает моментально
-        switch (e.keyCode) {
-            case 13:
-                slider.update();
-                animation.play();
-                break;
-        }
-
-        // По дефолту делает задержку для удобства
-        setTimeout(function () {
-            slider.update();
-        },1000);
-    };
-
-    // При фокусе на бегунке, можем двигать его стрелками и запускать с помощью
-    RUNNER.onfocus = function () {
-        let speed = 0, vector;
-        this.onkeydown = function (e) {
-            switch (e.keyCode) {
-                case 37:
-                    vector = -1;
-                    speed += vector;
-                    slider.moveKeyboard(speed);
-                    break;
-                case 39:
-                    vector = 1;
-                    speed += vector;
-                    slider.moveKeyboard(speed);
-                    break;
-                case 13:
-                    animation.play();
-                    break;
-            }
-        };
-        // Обнуляет ускорение
-        this.onkeyup = function () {
-            speed = 0;
-        };
-    };
 
 // Блок глобальных событий
 
@@ -367,7 +488,8 @@
     block.default();
 
     window.onresize = function () {
-        slider.runnerAtValue(SLIDER_INPUT.value);
+        slider.windowOnResize();
         canvas.size();
     };
+
 }());
