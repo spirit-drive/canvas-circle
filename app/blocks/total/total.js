@@ -219,15 +219,19 @@
         this.draw = function () {
             console.log('Присвойте функцию данному методу: canvas.draw = function(){... Ваша функция ...}');
         };
-        // Хранит координаты мыши
-        this.mousePos = {
-            x: 0,
-            y: 0
-        };
-        // При движении мышью, перезаписываем ее координаты
-        canvas.onmousemove = function (e){
-            canvasObjContext.mousePos.x = e.pageX - canvas.offsetLeft;
-            canvasObjContext.mousePos.y = e.pageY - canvas.offsetTop;
+        this.interaction = {
+            // Хранит координаты мыши
+            mousePos: {
+                x: 0,
+                y: 0
+            },
+            mouseMove: function () {
+                // При движении мышью, перезаписываем ее координаты
+                canvas.onmousemove = function (e){
+                    canvasObjContext.interaction.mousePos.x = e.pageX - canvas.offsetLeft;
+                    canvasObjContext.interaction.mousePos.y = e.pageY - canvas.offsetTop;
+                };
+            },
         };
     };
 
@@ -257,6 +261,8 @@
                     textX: 22,
                     func: function () {
                         console.log(`Функция кнопки "${this.text}"`);
+                        $this.animation.count = requestAnimationFrame($this.animation.loop);
+
                     },
                 },
                 {
@@ -265,6 +271,7 @@
                     textX: 10,
                     func: function () {
                         console.log(`Функция кнопки "${this.text}"`);
+                        cancelAnimationFrame($this.animation.count);
                     },
                 },
             ],
@@ -339,9 +346,7 @@
                         mouseY <= $this.button.array[i].y + $this.button.array[i].height)
                     {
                         canvasElem.style.cursor = 'pointer';
-                        document.onmousedown = function () {
-                            $this.button.array[i].func();
-                        };
+                        return $this.button.array[i];
                     }
                 }
             },
@@ -350,8 +355,9 @@
                 for (let i = 0; i < this.array.length; i++){
                     this.array[i].draw();
                 }
-                this.buttonFunc(canvasObj.mousePos.x,canvasObj.mousePos.y);
+                this.buttonFunc(canvasObj.interaction.mousePos.x,canvasObj.interaction.mousePos.y);
             },
+
         };
         this.circle = {
             // Количество кругов по умолчанию
@@ -539,28 +545,28 @@
                         }
                     }
                 }
+            },
+            stopStartCircle: function () {
                 // При нажатии проверяет, попал ли на круг, если попал то останавливает, либо запускает его
-                canvasElem.onmousedown = function () {
-                    let k = 0.2;
-                    if ($this.circle.array.length){
-                        for (let i = 0; i < $this.circle.array.length; i++){
-                            if ($this.support.distance(canvasObj.mousePos.x,canvasObj.mousePos.y,$this.circle.array[i].x,$this.circle.array[i].y) < $this.circle.array[i].totalRadius){
-                                if ($this.circle.array[i].vector.x){
-                                    $this.circle.array[i].vector.x = 0;
-                                    $this.circle.array[i].vector.y = 0;
-                                    $this.circle.array[i].strokeStyle = $this.circle.setting.colorStop;
-                                } else {
-                                    $this.circle.array[i].vector.x = (canvasObj.mousePos.x - $this.circle.array[i].x)*k;
-                                    $this.circle.array[i].vector.y = (canvasObj.mousePos.y - $this.circle.array[i].y)*k;
-                                    $this.circle.array[i].strokeStyle = $this.circle.setting.colorPlay;
-                                }
-                                setTimeout(function () {
-                                    $this.circle.array[i].strokeStyle = $this.circle.array[i].color;
-                                },1000);
+                let k = 0.2;
+                if ($this.circle.array.length){
+                    for (let i = 0; i < $this.circle.array.length; i++){
+                        if ($this.support.distance(canvasObj.interaction.mousePos.x,canvasObj.interaction.mousePos.y,$this.circle.array[i].x,$this.circle.array[i].y) < $this.circle.array[i].totalRadius){
+                            if ($this.circle.array[i].vector.x){
+                                $this.circle.array[i].vector.x = 0;
+                                $this.circle.array[i].vector.y = 0;
+                                $this.circle.array[i].strokeStyle = $this.circle.setting.colorStop;
+                            } else {
+                                $this.circle.array[i].vector.x = (canvasObj.interaction.mousePos.x - $this.circle.array[i].x)*k;
+                                $this.circle.array[i].vector.y = (canvasObj.interaction.mousePos.y - $this.circle.array[i].y)*k;
+                                $this.circle.array[i].strokeStyle = $this.circle.setting.colorPlay;
                             }
+                            setTimeout(function () {
+                                $this.circle.array[i].strokeStyle = $this.circle.array[i].color;
+                            },1000);
                         }
                     }
-                };
+                }
             },
         },
             // Отрисовка
@@ -572,7 +578,7 @@
                     $this.circle.array[i].draw();
 
                     // Если курсор на круге, то выставляем ему значение pointer
-                    if ($this.support.distance(canvasObj.mousePos.x,canvasObj.mousePos.y,$this.circle.array[i].x,$this.circle.array[i].y) < $this.circle.array[i].totalRadius){
+                    if ($this.support.distance(canvasObj.interaction.mousePos.x,canvasObj.interaction.mousePos.y,$this.circle.array[i].x,$this.circle.array[i].y) < $this.circle.array[i].totalRadius){
                         canvasElem.style.cursor = 'pointer';
                     }
                 }
@@ -584,8 +590,6 @@
             $this.button.create();
         };
         this.drawAll = function () {
-            // Обнуляем значение курсора
-            canvasElem.style.cursor = 'default';
             // Очищаем холст
             CONTEXT.clearRect(0, 0, canvasElem.width, canvasElem.height);
 
@@ -604,8 +608,21 @@
             },
             play: function () {
                 $this.createAll();
-                this.count = requestAnimationFrame(this.loop);
+                $this.drawAll();
+                $this.interaction();
             }
+        };
+        this.interaction = function () {
+            let button;
+            canvasObj.interaction.mouseMove();
+            setInterval(function () {
+                canvasElem.style.cursor = 'default';
+                button = $this.button.buttonFunc(canvasObj.interaction.mousePos.x,canvasObj.interaction.mousePos.y);
+                canvasElem.onmousedown = function () {
+                    if (button){button.func();}
+                    $this.circle.physics.stopStartCircle();
+                };
+            },20);
         };
 
     };
