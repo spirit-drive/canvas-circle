@@ -237,17 +237,6 @@
 
         let $this = this;
 
-        // Количество кругов по умолчанию
-        this.countCircle = 50;
-        this.getCountCircle = function () {
-            console.log(
-                `По умолчанию рисует ${this.countCircle} кругов 
-                \nЧтобы изменять количество кругов напишите: 
-                \nYourObject.getCountCircle = function () {... Ваша функция ...} 
-                \nНапример: canvas.draw.getCountCircle = function () {... Ваша функция ...}`
-            );
-            return this.countCircle;
-        };
         this.support = {
             // Целочисленный рандом
             randomInt: function(min, max){
@@ -260,6 +249,25 @@
             }
         };
         this.button = {
+            // Массив кнопок
+            buttons: [
+                {
+                    color: '#ffcb00',
+                    text: 'Play',
+                    textX: 22,
+                    func: function () {
+                        console.log(`Функция кнопки "${this.text}"`);
+                    },
+                },
+                {
+                    color: '#33ccff',
+                    text: 'Pause',
+                    textX: 10,
+                    func: function () {
+                        console.log(`Функция кнопки "${this.text}"`);
+                    },
+                },
+            ],
             // Настройки кнопки
             setting: {
                 width: 100,
@@ -267,84 +275,97 @@
                 lineWidth: 1,
                 borderRadius: 10,
                 shift: 10,
-                color: [
-                    '#ffcb00',
-                    '#33ccff',
-                ],
-                colorStroke: '#dfdfdf',
-                text: [
-                    'Play',
-                    'Pause',
-                ],
+                colorStroke: '#f4f4f4',
                 textColor: '#fafafa',
                 textFontSize: 28,
             },
-            // Отрисовка одной кнопки
-            drawButton: function (x,y,radius,width,height,color,text) {
-                CONTEXT.beginPath();
-                CONTEXT.moveTo(x, y + radius);
-                CONTEXT.lineTo(x, y + height - radius);
-                CONTEXT.quadraticCurveTo(x, y + height, x + radius, y + height);
-                CONTEXT.lineTo(x + width - radius, y + height);
-                CONTEXT.quadraticCurveTo(x + width, y + height, x + width, y + height - radius);
-                CONTEXT.lineTo(x + width, y + radius);
-                CONTEXT.quadraticCurveTo(x + width, y, x + width - radius, y);
-                CONTEXT.lineTo(x + radius, y);
-                CONTEXT.quadraticCurveTo(x, y, x, y + radius);
-                CONTEXT.lineWidth = $this.button.setting.lineWidth;
-                CONTEXT.strokeStyle = $this.button.setting.colorStroke;
-                CONTEXT.stroke();
-                CONTEXT.fillStyle = color;
-                CONTEXT.fill();
-                CONTEXT.font = `${$this.button.setting.textFontSize}px Arial`;
-                CONTEXT.beginPath();
-                CONTEXT.fillStyle = $this.button.setting.textColor;
-                CONTEXT.fillText(text,x + 10,y + 30);
-                CONTEXT.fill();
+            // Модель кнопок
+            Model: function (x,color,text,textX,func) {
+                this.x = x;
+                this.y = $this.button.setting.shift;
+                this.radius = $this.button.setting.borderRadius;
+                this.width = $this.button.setting.width;
+                this.height = $this.button.setting.height;
+                this.color = color;
+                this.text = text;
+                this.lineWidth = $this.button.setting.lineWidth;
+                this.strokeStyle = $this.button.setting.colorStroke;
+                this.textFontSize = $this.button.setting.textFontSize;
+                this.fillStyle = $this.button.setting.textColor;
+                this.func = func;
+                this.draw = function () {
+                    CONTEXT.beginPath();
+                    CONTEXT.moveTo(this.x, this.y + this.radius);
+                    CONTEXT.lineTo(this.x, this.y + this.height - this.radius);
+                    CONTEXT.quadraticCurveTo(this.x, this.y + this.height, this.x + this.radius, this.y + this.height);
+                    CONTEXT.lineTo(this.x + this.width - this.radius, this.y + this.height);
+                    CONTEXT.quadraticCurveTo(this.x + this.width, this.y + this.height, this.x + this.width, this.y + this.height - this.radius);
+                    CONTEXT.lineTo(this.x + this.width, this.y + this.radius);
+                    CONTEXT.quadraticCurveTo(this.x + this.width, this.y, this.x + this.width - this.radius, this.y);
+                    CONTEXT.lineTo(this.x + this.radius, this.y);
+                    CONTEXT.quadraticCurveTo(this.x, this.y, this.x, this.y + this.radius);
+                    CONTEXT.lineWidth = this.lineWidth;
+                    CONTEXT.strokeStyle = this.strokeStyle;
+                    CONTEXT.stroke();
+                    CONTEXT.fillStyle = this.color;
+                    CONTEXT.fill();
+                    CONTEXT.font = `${this.textFontSize}px Arial`;
+                    CONTEXT.beginPath();
+                    CONTEXT.fillStyle = this.fillStyle;
+                    CONTEXT.fillText(this.text,this.x + textX,$this.button.setting.shift/2 - 2 + ((this.width - this.textFontSize)/2));
+                    CONTEXT.fill();
+                };
             },
-            // Отрисовка всех кнопок
-            draw: function () {
-                for (let i = 0; i < 2; i++){
-                    $this.button.drawButton(
+            // Создание кнопок
+            array: [],
+            create: function () {
+                this.array = [];
+                for (let i = 0; i < $this.button.buttons.length; i++) {
+                    this.array.push(new this.Model(
                         $this.button.setting.shift*(i+1) + $this.button.setting.width * i,
-                        $this.button.setting.shift,
-                        $this.button.setting.borderRadius,
-                        $this.button.setting.width,
-                        $this.button.setting.height,
-                        $this.button.setting.color[i],
-                        $this.button.setting.text[i]
-                    );
+                        $this.button.buttons[i].color,
+                        $this.button.buttons[i].text,
+                        $this.button.buttons[i].textX,
+                        $this.button.buttons[i].func
+                    ));
                 }
             },
-            buttonCheck: function (mouseX,mouseY) {
-                for (let i = 0; i < 2; i++){
-                    if (mouseX >= $this.button.setting.shift*(i+1) + $this.button.setting.width * i &&
-                        mouseX <= $this.button.setting.shift*(i+1) + $this.button.setting.width * (i+1) &&
-                        mouseY >= $this.button.setting.shift &&
-                        mouseY <= $this.button.setting.shift + $this.button.setting.height)
+            // Функции на кнопки
+            buttonFunc: function (mouseX,mouseY) {
+                for (let i = 0; i < $this.button.array.length; i++){
+                    if (mouseX >= $this.button.array[i].x &&
+                        mouseX <= $this.button.array[i].x + $this.button.array[i].width &&
+                        mouseY >= $this.button.array[i].y &&
+                        mouseY <= $this.button.array[i].y + $this.button.array[i].height)
                     {
                         canvasElem.style.cursor = 'pointer';
                         document.onmousedown = function () {
-                            console.log(i);
-                            if (i){
-                                console.log(10);
-                                cancelAnimationFrame($this.animation.count);
-                                document.onmousedown = null;
-                            }else{
-                                console.log(20);
-                                $this.animation.count = requestAnimationFrame($this.animation.loop);
-                                document.onmousedown = null;
-                            }
-                            // (i) ? cancelAnimationFrame($this.animation.count)
-                            //     : $this.animation.count = requestAnimationFrame($this.animation.loop);
+                            $this.button.array[i].func();
                         };
-                    }else{
-                        // document.onmousedown = null;
                     }
                 }
-            }
+            },
+            // Отрисовка всех кнопок
+            draw: function () {
+                for (let i = 0; i < this.array.length; i++){
+                    this.array[i].draw();
+                }
+                this.buttonFunc(canvasObj.mousePos.x,canvasObj.mousePos.y);
+            },
         };
         this.circle = {
+            // Количество кругов по умолчанию
+            countCircle: 50,
+            // Функция для привязки количества кругов к другой функции
+            getCountCircle: function () {
+                console.log(
+                    `По умолчанию рисует ${this.countCircle} кругов 
+                    \nЧтобы изменять количество кругов напишите: 
+                    \nYourObject.getCountCircle = function () {... Ваша функция ...} 
+                    \nНапример: canvas.draw.circle.getCountCircle = function () {... Ваша функция ...}`
+                );
+                return this.countCircle;
+            },
             // Настройки
             setting: {
                 speed: 14,
@@ -363,7 +384,7 @@
                 let kind = $this.support.randomInt(0, 2);
 
                 // Размеры
-                this.radius = (Math.random() + 1) * Math.sqrt(canvasElem.height * canvasElem.width / $this.getCountCircle()) / 2 * 0.3;
+                this.radius = (Math.random() + 1) * Math.sqrt(canvasElem.height * canvasElem.width / $this.circle.getCountCircle()) / 2 * 0.3;
                 this.lineWidth = 5;
                 this.totalRadius = this.radius + this.lineWidth;
 
@@ -432,15 +453,16 @@
                     CONTEXT.fill();
                 };
             },
+            // Создание кругов
             array: [],
             create: function () {
                 this.array = [];
-                for (let i = 0; i < $this.getCountCircle(); i++) {
+                for (let i = 0; i < $this.circle.getCountCircle(); i++) {
                     this.array.push(new this.Model());
                 }
-            }
-        };
-        this.physics = {
+            },
+            // Физика
+            physics: {
             // Содержит пары, которые столкнулись, чтобы не вызывать столкновение, до тех пор, пока они окончательно не выйдут друг из друга
             isWasPair: [],
 
@@ -539,34 +561,49 @@
                         }
                     }
                 };
-            }
+            },
+        },
+            // Отрисовка
+            draw: function () {
+                // Бежим по массиву с кругами
+                for (let i = 0; i < $this.circle.array.length; i++) {
+                    // Сдвигаем и рисуем круг
+                    $this.circle.array[i].move();
+                    $this.circle.array[i].draw();
+
+                    // Если курсор на круге, то выставляем ему значение pointer
+                    if ($this.support.distance(canvasObj.mousePos.x,canvasObj.mousePos.y,$this.circle.array[i].x,$this.circle.array[i].y) < $this.circle.array[i].totalRadius){
+                        canvasElem.style.cursor = 'pointer';
+                    }
+                }
+                $this.circle.physics.func();
+            },
+        };
+        this.createAll = function () {
+            $this.circle.create();
+            $this.button.create();
+        };
+        this.drawAll = function () {
+            // Обнуляем значение курсора
+            canvasElem.style.cursor = 'default';
+            // Очищаем холст
+            CONTEXT.clearRect(0, 0, canvasElem.width, canvasElem.height);
+
+            // Рисуем все элементы
+            $this.circle.draw();
+            $this.button.draw();
         };
         this.animation = {
             count:'',
             // Петля анимации
             loop: function() {
-
-                canvasElem.style.cursor = 'default';
-
                 // При нажатии на SUBMIT с каждым нажатием скорость кругов увеличивается, cancelAnimationFrame предотвращает эту проблему
                 cancelAnimationFrame($this.animation.count);
-                CONTEXT.clearRect(0, 0, canvasElem.width, canvasElem.height);
-                for (let i = 0; i < $this.circle.array.length; i++) {
-                    $this.circle.array[i].move();
-                    $this.circle.array[i].draw();
-                    if ($this.support.distance(canvasObj.mousePos.x,canvasObj.mousePos.y,$this.circle.array[i].x,$this.circle.array[i].y) < $this.circle.array[i].totalRadius){
-                        canvasElem.style.cursor = 'pointer';
-                    }
-                }
-
-                $this.button.draw();
-                $this.button.buttonCheck(canvasObj.mousePos.x,canvasObj.mousePos.y);
-
-                $this.physics.func();
+                $this.drawAll();
                 $this.animation.count = requestAnimationFrame($this.animation.loop);
             },
             play: function () {
-                $this.circle.create();
+                $this.createAll();
                 this.count = requestAnimationFrame(this.loop);
             }
         };
@@ -595,7 +632,7 @@
 
 // Блок управления
     // Привязываем количество кругов к значению слайдера
-    canvas.draw.getCountCircle = function () {
+    canvas.draw.circle.getCountCircle = function () {
         return slider.value();
     };
 
