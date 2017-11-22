@@ -135,26 +135,51 @@ let CircleCreate = function (canvasElem,canvasObj) {
             );
             return this.countCircle;
         },
+        // Виды кругов
+        kind: [
+            {
+                color: "#fdff41",
+                colorStop: "#5880ff",
+                colorPlay: "#30ffeb",
+                radiusCoef: 0.5,
+                densityCircle: 10
+            },
+            {
+                color: "#ffc13f",
+                colorStop: "#5880ff",
+                colorPlay: "#30ffeb",
+                radiusCoef: 0.7,
+                densityCircle: 15
+            },
+            {
+                color: "#bfdefe",
+                densityCircle: 5
+            },
+            {
+                color: "#8fcafe",
+                densityCircle: 20
+            },
+            {
+                color: "#dbcdf0",
+                densityCircle: 45
+            },
+        ],
         // Настройки
         setting: {
-            speed: 14,
-            color: [
-                "#bfdefe",
-                "#8fcafe",
-                "#dbcdf0",
-            ],
+            speed: 17,
             colorStop: "#ffb584",
             colorPlay: "#fd0",
-            densityCircle: [5, 20, 45],
+            lineWidth: 5,
+            radiusCoef: 1,
         },
         // Модель
         Model: function () {
             // Рандомный вид
-            let kind = $this.support.randomInt(0, 2);
+            let kind = $this.support.randomInt(0, $this.circle.kind.length - 1);
 
             // Размеры
-            this.radius = (Math.random() + 1) * Math.sqrt(canvasElem.height * canvasElem.width / $this.circle.getCountCircle()) / 2 * 0.3;
-            this.lineWidth = 5;
+            this.radius = (Math.random() + 1) * Math.sqrt(canvasElem.height * canvasElem.width / $this.circle.getCountCircle()) / 2 * 0.3 * (($this.circle.kind[kind].radiusCoef)? $this.circle.kind[kind].radiusCoef : $this.circle.setting.radiusCoef);
+            this.lineWidth = $this.circle.setting.lineWidth;
             this.totalRadius = this.radius + this.lineWidth;
 
             // Позиция
@@ -162,12 +187,14 @@ let CircleCreate = function (canvasElem,canvasObj) {
             this.y = Math.random() * (canvasElem.height - this.radius * 2) + this.radius;
 
             // Цвета
-            this.color = $this.circle.setting.color[kind];
+            this.color = $this.circle.kind[kind].color;
             this.strokeStyle = this.color;
+            this.colorStop = ($this.circle.kind[kind].colorStop)?$this.circle.kind[kind].colorStop:$this.circle.setting.colorStop;
+            this.colorPlay = ($this.circle.kind[kind].colorPlay)?$this.circle.kind[kind].colorPlay:$this.circle.setting.colorPlay;
 
             // Физические параметры
             this.volumeCircle = Math.pow(this.radius, 3) * Math.PI * 4 / 3;
-            this.mass = this.volumeCircle * $this.circle.setting.densityCircle[kind];
+            this.mass = this.volumeCircle * $this.circle.kind[kind].densityCircle;
             this.vector = {
                 x: $this.circle.setting.speed * (Math.random() - 0.5),
                 y: $this.circle.setting.speed * (Math.random() - 0.5),
@@ -237,7 +264,6 @@ let CircleCreate = function (canvasElem,canvasObj) {
 
             // Для выхода из итерации
             check: false,
-
 
             // Принимает номера кругов, если есть пара с такими номерами, то либо удаляет "this.isWasPair.splice(l)" - variant = false,
             // либо присваивает переменной значение для выхода из итерации "this.check = true" - variant = true
@@ -318,11 +344,11 @@ let CircleCreate = function (canvasElem,canvasObj) {
                             if ($this.circle.array[i].vector.x){
                                 $this.circle.array[i].vector.x = 0;
                                 $this.circle.array[i].vector.y = 0;
-                                $this.circle.array[i].strokeStyle = $this.circle.setting.colorStop;
+                                $this.circle.array[i].strokeStyle = $this.circle.array[i].colorStop;
                             } else {
                                 $this.circle.array[i].vector.x = (canvasObj.interaction.mousePos.x - $this.circle.array[i].x)*k;
                                 $this.circle.array[i].vector.y = (canvasObj.interaction.mousePos.y - $this.circle.array[i].y)*k;
-                                $this.circle.array[i].strokeStyle = $this.circle.setting.colorPlay;
+                                $this.circle.array[i].strokeStyle = $this.circle.array[i].colorPlay;
                             }
                             setTimeout(function () {
                                 $this.circle.array[i].strokeStyle = $this.circle.array[i].color;

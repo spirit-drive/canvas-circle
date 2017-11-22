@@ -11,7 +11,7 @@
 
     const SLIDER_MIN = 1;
     const SLIDER_MAX = 100;
-    const SLIDER_DEFAULT = 50;
+    const SLIDER_DEFAULT = 5;
 
 // Модели все подключаются из отдельных файлов
 
