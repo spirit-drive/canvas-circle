@@ -1,0 +1,289 @@
+html,
+body,
+div,
+span,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  font-weight: normal;
+  font-style: normal; }
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+menu,
+nav,
+section,
+summary {
+  display: block; }
+
+body {
+  line-height: 1.2; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+ol {
+  padding-left: 1.4em; }
+
+ul {
+  padding-left: 1.4em; }
+
+blockquote, q {
+  quotes: none; }
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+  content: none; }
+
+* {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box; }
+  *:before, *:after {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box; }
+
+*::-webkit-input-placeholder {
+  color: #666;
+  opacity: 1; }
+
+*:-moz-placeholder {
+  color: #666;
+  opacity: 1; }
+
+*::-moz-placeholder {
+  color: #666;
+  opacity: 1; }
+
+*:-ms-input-placeholder {
+  color: #666;
+  opacity: 1; }
+
+body input:focus:required:invalid,
+body textarea:focus:required:invalid {
+  color: #666; }
+
+body input:required:valid,
+body textarea:required:valid {
+  color: #666; }
+
+html, body {
+  height: 100%; }
+
+body {
+  font-size: 16px;
+  min-width: 320px;
+  position: relative;
+  line-height: 1.6;
+  font-family: "roboto-example", sans-serif;
+  overflow-x: hidden;
+  background: none; }
+
+.img-responsive {
+  display: block;
+  max-width: 100%;
+  height: auto; }
+
+.slider {
+  position: relative;
+  height: 8px;
+  -webkit-border-radius: 5px;
+          border-radius: 5px;
+  border: solid 1px #e6e6e6;
+  background: #fbffff;
+  cursor: pointer; }
+  .slider:hover .slider__runner {
+    background: #ffea31; }
+  .slider:active .slider__runner {
+    background: #fffbc0; }
+  .slider__runner {
+    position: absolute;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+        -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    -webkit-border-radius: 50%;
+            border-radius: 50%;
+    border: none;
+    background: #ffbf09; }
+    .slider__runner:hover {
+      background: #ffea31;
+      cursor: -webkit-grab;
+      cursor: grab; }
+    .slider__runner:active {
+      background: #fffbc0;
+      cursor: -webkit-grabbing;
+      cursor: grabbing; }
+
+.frame {
+  padding: 30px 50px; }
+
+.management {
+  text-align: center; }
+  .management__info {
+    margin-top: 20px; }
+  .management__start {
+    float: left; }
+  .management__finish {
+    float: right; }
+  .management__precise-control {
+    width: 50px;
+    height: 30px; }
+
+.mark {
+  display: inline-block;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+  .mark__name {
+    padding-right: 10px; }
+  .mark__value {
+    font-size: 20px; }
+
+.canvas {
+  text-align: center; }
+  .canvas__field {
+    border: 1px solid #ccc;
+    display: block; }
+  .canvas__play {
+    margin: 40px 0;
+    border: none;
+    -webkit-border-radius: 20px;
+            border-radius: 20px;
+    padding: 5px 20px;
+    outline: none;
+    color: #ffffff;
+    background: #ffbf09; }
+    .canvas__play:hover {
+      background: #ffea31; }
+    .canvas__play:active {
+      background: #fffbc0; }
+
+/*==========  Desktop First  ==========*/
+/* Large Devices, Wide Screens */
+@media only screen and (max-width: 1200px) {
+  /**/ }
+
+/* Medium Devices, Desktops */
+@media only screen and (max-width: 992px) {
+  /**/ }
+
+/* Small Devices, Tablets */
+@media only screen and (max-width: 768px) {
+  /**/ }
+
+/* Extra Small Devices, Phones */
+@media only screen and (max-width: 480px) {
+  /**/ }
+
+/* Custom, iPhone Retina */
+@media only screen and (max-width: 320px) {
+  /**/ }
+
+/*==========  Mobile First  ==========*/
+/* Custom, iPhone Retina */
+@media only screen and (min-width: 320px) {
+  /**/ }
+
+/* Extra Small Devices, Phones */
+@media only screen and (min-width: 480px) {
+  /**/ }
+
+/* Small Devices, Tablets */
+@media only screen and (min-width: 768px) {
+  /**/ }
+
+/* Medium Devices, Desktops */
+@media only screen and (min-width: 992px) {
+  /**/ }
+
+/* Large Devices, Wide Screens */
+@media only screen and (min-width: 1200px) {
+  /**/ }

@@ -1,0 +1,11 @@
+mixin checkbox(value,checked,disabled)
+    label.checkboxes__checkbox
+        span.checkbox__cnt
+            input(type="checkbox" checked=checked disabled=disabled)
+            span.checkbox__custom
+        span.checkbox__text!= value
+
+mixin contacts_line(data,value)
+    .contacts__row
+        span.contacts__data=data
+        span.contacts__value!=value

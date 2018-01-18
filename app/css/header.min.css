@@ -1,0 +1,47 @@
+@font-face {
+  font-family: "roboto-example";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../fonts/RobotoRegular/RobotoRegular.eot");
+  src: url("../fonts/RobotoRegular/RobotoRegular.eot?#iefix") format("embedded-opentype"), url("../fonts/RobotoRegular/RobotoRegular.woff") format("woff"), url("../fonts/RobotoRegular/RobotoRegular.ttf") format("truetype"); }
+
+@font-face {
+  font-family: "roboto-example";
+  font-weight: bold;
+  font-style: normal;
+  src: url("../fonts/RobotoBold/RobotoBold.eot");
+  src: url("../fonts/RobotoBold/RobotoBold.eot?#iefix") format("embedded-opentype"), url("../fonts/RobotoBold/RobotoBold.woff") format("woff"), url("../fonts/RobotoBold/RobotoBold.ttf") format("truetype"); }
+
+@font-face {
+  font-family: "core-mellow";
+  font-weight: normal;
+  font-style: normal;
+  src: url("../fonts/CoreMellow/CoreMellow.eot");
+  src: url("../fonts/CoreMellow/CoreMellow.eot?#iefix") format("embedded-opentype"), url("../fonts/CoreMellow/CoreMellow.woff") format("woff"), url("../fonts/CoreMellow/CoreMellow.ttf") format("truetype"); }
+
+.main-screen {
+  height: 600px;
+  background: url("../../img/main-screen-bg.jpg") no-repeat center;
+  -webkit-background-size: cover;
+          background-size: cover;
+  text-align: center;
+  color: #fff; }
+  .main-screen h1 {
+    font-family: 'core-mellow', sans-serif;
+    font-size: 90px;
+    display: inline-block;
+    margin-bottom: 40px; }
+    .main-screen h1:after {
+      content: '';
+      display: block;
+      height: 2px;
+      background: #ff0000; }
+  .main-screen:after {
+    display: inline-block;
+    content: '';
+    vertical-align: middle;
+    height: 100%; }
+
+.main-screen__title {
+  display: inline-block;
+  vertical-align: middle; }
